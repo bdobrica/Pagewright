@@ -13,10 +13,10 @@ final class Http
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-        // This file lives in /admin/libs/util; we want /admin
+        // This file lives in /pw-admin/libs/util; we want /pw-admin
         // We'll derive from SCRIPT_NAME.
-        $script = $_SERVER['SCRIPT_NAME'] ?? '/admin/index.php';
-        // e.g. /pagewright/admin/index.php -> /pagewright/admin
+        $script = $_SERVER['SCRIPT_NAME'] ?? '/pw-admin/index.php';
+        // e.g. /pagewright/pw-admin/index.php -> /pagewright/pw-admin
         $adminPath = preg_replace('#/index\.php$#', '', $script);
         $adminPath = rtrim($adminPath, '/');
 

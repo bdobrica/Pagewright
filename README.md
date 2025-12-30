@@ -81,7 +81,7 @@ If you want to upload a ZIP and start editing your site in a browser - it is.
 ## How Pagewright works
 
 1. You upload Pagewright to your hosting account
-2. You visit `/admin` in your browser
+2. You visit `/pw-admin` in your browser
 3. You sign in using OAuth (Google or GitHub)
 4. You describe changes in natural language
 5. Pagewright:
@@ -101,7 +101,7 @@ No local tooling.
 1. Download the Pagewright ZIP
 2. Upload it to your hosting account (via cPanel or FTP)
 3. Make sure PHP 8.x is enabled
-4. Visit `/admin`
+4. Visit `/pw-admin`
 5. Sign in with OAuth
 6. Start building
 

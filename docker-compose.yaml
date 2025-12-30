@@ -1,0 +1,23 @@
+services:
+  nginx:
+    image: nginx:1.28.1-alpine3.23
+    container_name: pagewright_nginx
+    ports:
+      - "8880:80"
+    volumes:
+      - ./pagewright:/var/www/html:cached
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - php
+    restart: unless-stopped
+
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile
+    container_name: pagewright_php
+    volumes:
+      - ./pagewright:/var/www/html:cached
+      # Optional: keep storage as a host folder so you can inspect users.json easily
+      - ./pagewright/pw-storage:/var/www/html/pw-storage
+    restart: unless-stopped
