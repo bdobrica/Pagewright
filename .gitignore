@@ -24,4 +24,31 @@ demos/
 extras/documentation
 
 # Secrets
+
+# Secrets
 .env
+
+# Pagewright generated content
+pagewright/pw-public/preview/
+pagewright/pw-public/site/
+
+# Pagewright user data
+pagewright/pw-storage/users.json
+
+# Pagewright change logs
+pagewright/pw-log/patches/
+pagewright/pw-log/snapshots/
+
+# Log files
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,29 @@
+[
+    {
+        "label": "Home",
+        "href": "/",
+        "pageId": "home"
+    },
+    {
+        "label": "About",
+        "href": "/about",
+        "pageId": "about",
+        "children": [
+            {
+                "label": "How It Works",
+                "href": "/about#how-it-works",
+                "pageId": "about"
+            },
+            {
+                "label": "Core Principles",
+                "href": "/about#core-principles",
+                "pageId": "about"
+            },
+            {
+                "label": "Contact",
+                "href": "/contact",
+                "pageId": "contact"
+            }
+        ]
+    }
+]

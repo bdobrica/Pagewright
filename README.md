@@ -205,6 +205,27 @@ LLMs are used as **assistants**, not authorities.
 
 ---
 
+## Development and Testing
+
+The `/tests` directory contains test scripts for verifying core functionality:
+
+- `test-llm.php` - LLM integration tests (OpenAI API, edit workflow, page creation)
+- `test-compiler.php` - Markdown compilation and publishing tests
+- `test-operations.php` - Operations engine and rollback tests
+
+Run tests from the `/tests` directory:
+
+```bash
+cd /tests
+php test-llm.php      # Requires OPENAI_API_KEY in .env
+php test-compiler.php
+php test-operations.php
+```
+
+The `/pagewright` directory is designed to be a clean release package (tests excluded).
+
+---
+
 ## Status
 
 Pagewright is in **early development**.

@@ -2,6 +2,8 @@
 
 **Last Updated:** December 31, 2025
 
+**Status:** Phase 4 Complete! 🎉 LLM integration fully operational with natural language editing.
+
 ---
 
 ## 🔴 Critical Issues (Fix Immediately)
@@ -155,6 +157,271 @@
 
 ---
 
+## � Core CMS Features (v0.2-v0.4 Implementation Plan)
+
+### Phase 1: Define the on-disk "CMS model" ✅
+
+**Goal:** Establish file-based content structure without LLM integration.
+
+- [x] **Create core directory structure** ✅ 2025-12-31
+  - Location: `pagewright/`
+  - Directories created:
+    - `pw-content/` (pages, blocks, nav.json)
+    - `pw-themes/` (default theme with templates, assets, prompt.md)
+    - `pw-public/` (site and preview subdirectories)
+    - `pw-plugins/` (components)
+    - `pw-log/` (patches, snapshots)
+
+- [x] **Define JSON schemas and validators** ✅ 2025-12-31
+  - `nav.json` structure: tree of `{label, href, pageId}` items with nested children support
+  - Page front matter fields: `id`, `title`, `slug`, `updated_at`, `draft`
+  - `theme.json`: regions, allowed components, tokens, template paths
+  - Implemented PHP validators: `PageValidator`, `NavValidator`, `ThemeValidator`
+
+- [x] **Create default theme structure** ✅ 2025-12-31
+  - Location: `pw-themes/default/`
+  - Files: `theme.json`, `prompt.md`, `templates/layout.php`, `templates/partials/`
+  - Assets: `theme.css` (PicoCSS + custom styles), `theme.js`
+  - Supports 12 components: hero, callout, button, card, grid, image, video, quote, code, divider, accordion, tabs
+
+- [x] **Implement content management from disk** ✅ 2025-12-31
+  - Created `ContentManager` class to scan pages, parse front matter, manage navigation
+  - Created `ThemeManager` class to load themes, validate configs, manage tokens
+  - Sample content: home.md and about.md with JSON front matter
+
+### Phase 2: Build the compiler (without LLM) ✅
+
+**Goal:** Deterministic WordPress-like rendering system.
+
+- [x] **Integrate Markdown parser** ✅ 2025-12-31
+  - Downloaded Parsedown (single-file, shared hosting friendly)
+  - Created `MarkdownParser` wrapper with safe mode enabled
+  - Supports GitHub-flavored markdown with breaks
+
+- [x] **Implement component blocks system** ✅ 2025-12-31
+  - Created `ComponentParser` to extract `:::component` blocks and parse parameters
+  - Created `ComponentRegistry` with 10 built-in components:
+    - hero, callout, button, card, grid, image, video, quote, code, divider
+  - Component validation against theme's allowed list
+  - Safe HTML rendering with error handling
+
+- [x] **Build theme rendering system** ✅ 2025-12-31
+  - Created `Compiler` class combining markdown, components, and templates
+  - Placeholder system to prevent markdown from mangling component HTML
+  - Full template variable support: `$headerHtml, $contentHtml, $sidebarHtml, $footerHtml`
+  - Navigation rendering with active page detection
+  - Theme assets (CSS/JS) automatically included
+
+- [x] **Implement preview and publish workflows** ✅ 2025-12-31
+  - Created `Publisher` class
+  - Preview: compile to `pw-public/preview/`
+  - Publish: compile to `pw-public/site/` (published pages only)
+  - Auto-generate `index.html` from home page
+  - Test script confirms: 2 pages compiled successfully
+
+### Phase 3: Change operations and changelog system ✅
+
+**Goal:** Implement safe, reversible change engine before adding LLM.
+
+- [x] **Design standardized operation structure** ✅ 2025-12-31
+  - Created `Operation` class with 4 types: `write_file`, `delete_file`, `update_json`, `update_tokens`
+  - Path validation and traversal prevention
+  - Path allowlist enforcement (`pw-content/**`, `pw-themes/**/theme.json`)
+  - Data type validation per operation type
+
+- [x] **Implement patch storage system** ✅ 2025-12-31
+  - Created `ChangeSet` class to group operations with metadata
+  - Created `ChangeLogger` to store changes in `pw-log/patches/{changeId}/`
+  - Stores `manifest.json` with full change details
+  - Stores `files/{path}.before` and `files/{path}.after` snapshots
+  - Full file versioning for reliable rollback
+
+- [x] **Create operations engine** ✅ 2025-12-31
+  - Created `OperationsEngine` to validate and apply operations
+  - Atomic operations with automatic rollback on failure
+  - Dry-run mode for validation without applying
+  - Integration with ContentManager and ThemeManager
+  - Proper error handling and reporting
+
+- [x] **Implement rollback system** ✅ 2025-12-31
+  - Rollback individual changes by change ID
+  - Restores from "before" snapshots
+  - Automatic cleanup of new files on rollback
+  - Test confirms: create → rollback → restore working perfectly
+  - Pruning support to limit stored changes (keep last N)
+
+### Phase 4: LLM integration (Prompt → Preview → Publish) ✅
+
+**Goal:** Safe, validated LLM-powered content editing.
+
+- [x] **Add LLM provider settings** ✅ 2025-12-31
+  - Added OpenAI configuration to `config.php`:
+    - `OPENAI_API_KEY` (from environment or config)
+    - `OPENAI_MODEL` (default: gpt-4o)
+    - `OPENAI_API_BASE_URL` (allow custom endpoints)
+  - Created `.env` loader in config.php for easy local development
+  - Secrets stored in PHP config (more secure than JSON)
+
+- [x] **Build LLM client abstraction** ✅ 2025-12-31
+  - Created `LLMClient` abstract class for provider interface
+  - Implemented `OpenAIClient` with chat completions API
+  - Created `LLMFactory` to instantiate from config
+  - Features: JSON mode, error handling, connection testing
+  - HttpClient updated with proper JSON handling
+
+- [x] **Implement theme prompt contracts** ✅ 2025-12-31
+  - Created `PromptBuilder` to construct system/user prompts
+  - System prompt loaded from theme's `prompt.md` (300+ lines)
+  - Dynamic injection of theme context:
+    - Allowed components from theme
+    - Theme tokens reference
+    - File path constraints
+    - Operation types and examples
+  - User prompt includes current page content and navigation
+
+- [x] **Build validation pipeline** ✅ 2025-12-31
+  - Created `OutputValidator` to parse and validate LLM JSON
+  - Supports both "operations" and "ops" keys (theme uses "ops")
+  - Path allowlist enforcement (`pw-content/**`, `pw-themes/default/theme.json`)
+  - Page validation: front matter structure, required fields
+  - Navigation validation: proper nesting, required fields
+  - Component validation: only allowed components per theme
+  - Path traversal prevention (no `..`)
+  - Multi-line JSON front matter support
+
+- [x] **Create complete edit workflow** ✅ 2025-12-31
+  - Created `EditWorkflow` orchestrator class
+  - Complete flow: Prompt → LLM → Validate → Apply → Preview → Publish
+  - Features:
+    - `editPage()`: Edit existing pages with natural language
+    - `createPage()`: Create new pages with navigation updates
+    - `previewPage()`: Generate preview HTML
+    - `publishPage()`: Publish to site directory
+    - `rollback()`: Undo changes by changeset ID
+  - Atomic operations with automatic rollback on failure
+  - Auto-preview generation after successful edits
+  - Token usage tracking (prompt/completion/total)
+
+- [x] **Add test interface** ✅ 2025-12-31
+  - Created `test-llm.php` with 7 comprehensive tests:
+    1. Load LLM configuration from config.php
+    2. Test API connection
+    3. Initialize workflow with all dependencies
+    4. Edit page: Add "Why Choose Pagewright" section with 3 callout benefits
+    5. Verify page changes applied
+    6. Generate preview
+    7. Create new contact page with nav updates
+  - All tests passing ✅
+  - Real OpenAI API integration working
+  - Example changeset: chg_20251231_122411_1aaf50fc
+
+### Phase 5: Media Library
+
+**Goal:** Support images and file uploads for real sites.
+
+- [ ] **Create upload system**
+  - Directory: `pw-public/uploads/`
+  - Admin upload endpoint
+  - Store original files
+  - Generate thumbnails for images (PHP GD)
+  - Store metadata in `pw-storage/media.json`
+
+- [ ] **Integrate media with LLM**
+  - Include media manifest in LLM context: `{url, type, alt, title}`
+  - LLM references media by URL from manifest only
+  - Validate media references in operations
+
+- [ ] **Build media library UI**
+  - Grid view of uploaded media
+  - Upload interface (drag-drop)
+  - Insert into content functionality
+  - Edit alt text and metadata
+  - Delete media (with usage check)
+
+### Phase 6: WordPress-like UX polish
+
+**Goal:** Production-ready user experience.
+
+- [ ] **Create install wizard**
+  - Check PHP version and extensions
+  - Verify directory writability
+  - Create required folders
+  - Set base URL
+  - Configure OAuth
+  - Test compilation
+
+- [ ] **Build theme gallery**
+  - Browse available themes
+  - Preview theme (live demo)
+  - Activate theme
+  - Theme settings editor
+
+- [ ] **Add component library browser**
+  - Gallery of available components/plugins
+  - Component preview
+  - Insert component into page
+
+- [ ] **Implement page management UI**
+  - Page tree view (hierarchical)
+  - Slug editor
+  - Draft vs published status
+  - Create/delete pages
+  - Reorder pages
+
+- [ ] **Build menu editor**
+  - Visual menu builder
+  - Drag-drop reordering
+  - Add/remove menu items
+  - Edit labels and links
+  - Save to `nav.json`
+
+- [ ] **Add repair tools**
+  - Rebuild site from content (force recompile)
+  - Validate all content files
+  - Fix broken references
+  - Clear preview cache
+
+### Implementation Priority (Next 7 Days)
+
+Tight sequence for rapid progress:
+
+1. [x] **Day 1-2:** Create directory structure and sample content ✅ 2025-12-31
+   - Created `pw-content/pages/home.md` with JSON front matter
+   - Created `pw-content/pages/about.md`
+   - Created `pw-content/nav.json` with nested menu structure
+   - Created default theme in `pw-themes/default/` with 12 components
+
+2. [x] **Day 2-3:** Implement basic compiler ✅ 2025-12-31
+   - Integrated Parsedown for Markdown → HTML
+   - Implemented component parser with `:::component` syntax
+   - Created placeholder system to prevent markdown escaping HTML
+   - Theme layout injection with template variables
+
+3. [x] **Day 3-4:** Preview system ✅ 2025-12-31
+   - Compile to `pw-public/preview/`
+   - Compile to `pw-public/site/` for published pages
+   - Auto-generate index.html from home page
+
+4. [x] **Day 4-5:** Changelog system ✅ 2025-12-31
+   - Save before/after files in `pw-log/patches/{changeId}/`
+   - Store full manifest.json with metadata
+   - Implement restore functionality with file snapshots
+
+5. [x] **Day 5-6:** Operations engine ✅ 2025-12-31
+   - Implemented 4 operation types: write_file, delete_file, update_json, update_tokens
+   - Path validation and allowlist enforcement
+   - Atomic operations with automatic rollback on failure
+
+6. [x] **Day 6-7:** Basic LLM integration ✅ 2025-12-31
+   - OpenAI client with JSON mode
+   - Theme-aware prompt construction
+   - Complete validation pipeline
+   - Edit and create workflows
+   - Auto-preview generation
+   - Full test suite passing
+
+---
+
 ## 📋 Progress Tracking
 
 ### Completion Status
@@ -162,8 +429,15 @@
 - **High Priority:** 9/14 (64%)
 - **Medium Priority:** 0/11 (0%)
 - **Low Priority:** 0/8 (0%)
+- **Phase 1 (CMS Model):** 4/4 (100%) ✅
+- **Phase 2 (Compiler):** 4/4 (100%) ✅
+- **Phase 3 (Changelog):** 4/4 (100%) ✅
+- **Phase 4 (LLM Integration):** 6/6 (100%) ✅
+- **Phase 5 (Media Library):** 0/3 (0%)
+- **Phase 6 (UX Polish):** 0/6 (0%)
+- **7-Day Sprint:** 6/6 (100%) ✅
 
-### Overall: 14/38 items complete (37%)
+### Overall: 38/71 items complete (54%)
 
 ---
 

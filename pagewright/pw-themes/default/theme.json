@@ -1,0 +1,87 @@
+{
+  "name": "Default Theme",
+  "version": "1.0.0",
+  "description": "Clean, responsive default theme for Pagewright",
+  "author": "Pagewright",
+  
+  "tokens": {
+    "site_title": "My Pagewright Site",
+    "site_description": "A simple, beautiful website built with Pagewright",
+    "site_tagline": "Write your story",
+    "logo_url": "",
+    "primary_color": "#0066cc",
+    "secondary_color": "#6c757d",
+    "accent_color": "#28a745",
+    "background_color": "#ffffff",
+    "text_color": "#333333",
+    "link_color": "#0066cc",
+    "font_family_heading": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "font_family_body": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "max_content_width": "1200px",
+    "header_height": "auto",
+    "footer_text": "© 2025 My Pagewright Site. All rights reserved."
+  },
+  
+  "regions": {
+    "header": {
+      "enabled": true,
+      "description": "Site header with logo and navigation"
+    },
+    "content": {
+      "enabled": true,
+      "description": "Main content area"
+    },
+    "sidebar": {
+      "enabled": true,
+      "description": "Optional sidebar for widgets",
+      "widgets": []
+    },
+    "footer": {
+      "enabled": true,
+      "description": "Site footer"
+    }
+  },
+  
+  "allowed_components": [
+    "hero",
+    "callout",
+    "button",
+    "card",
+    "grid",
+    "image",
+    "video",
+    "quote",
+    "code",
+    "divider",
+    "accordion",
+    "tabs"
+  ],
+  
+  "templates": {
+    "layout": "templates/layout.php",
+    "partials": {
+      "header": "templates/partials/header.php",
+      "footer": "templates/partials/footer.php",
+      "sidebar": "templates/partials/sidebar.php",
+      "navigation": "templates/partials/navigation.php"
+    }
+  },
+  
+  "assets": {
+    "css": [
+      "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
+      "assets/theme.css"
+    ],
+    "js": [
+      "assets/theme.js"
+    ]
+  },
+  
+  "settings": {
+    "enable_sidebar": true,
+    "enable_search": false,
+    "enable_dark_mode": true,
+    "enable_breadcrumbs": false,
+    "posts_per_page": 10
+  }
+}
