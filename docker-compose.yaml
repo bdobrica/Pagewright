@@ -16,6 +16,8 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile
     container_name: pagewright_php
+    env_file:
+      - ./.env
     volumes:
       - ./pagewright:/var/www/html:cached
       # Optional: keep storage as a host folder so you can inspect users.json easily

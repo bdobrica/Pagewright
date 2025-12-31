@@ -6,4 +6,4 @@ require_once __DIR__ . '/../load.php';
 Session::start();
 Session::logout();
 
-Http::redirect(Http::baseUrl() . '/index.php');
+Http::redirect(Http::adminUrl());

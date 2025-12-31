@@ -19,6 +19,10 @@ final class Session
 
     public static function login(array $user): void
     {
+        // Regenerate session ID to prevent session fixation attacks
+        // The 'true' parameter deletes the old session file
+        session_regenerate_id(true);
+        
         $_SESSION['user'] = $user;
         $_SESSION['logged_in'] = true;
     }
@@ -41,5 +45,35 @@ final class Session
     public static function isLoggedIn(): bool
     {
         return !empty($_SESSION['logged_in']) && is_array($_SESSION['user'] ?? null);
+    }
+
+    /**
+     * Generate a new CSRF token for the current session
+     */
+    public static function csrfToken(): string
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    /**
+     * Validate a CSRF token against the session token
+     */
+    public static function validateCsrfToken(string $token): bool
+    {
+        if (empty($_SESSION['csrf_token'])) {
+            return false;
+        }
+        return hash_equals($_SESSION['csrf_token'], $token);
+    }
+
+    /**
+     * Regenerate CSRF token (call after successful form submission)
+     */
+    public static function regenerateCsrfToken(): void
+    {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
     }
 }

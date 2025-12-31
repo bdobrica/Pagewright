@@ -3,6 +3,10 @@ declare(strict_types=1);
 
 final class Http
 {
+    /**
+     * Get the base URL to the admin panel directory (e.g., http://localhost:8880/pw-admin)
+     * This works from any script within the admin panel.
+     */
     public static function baseUrl(): string
     {
         // Prefer configured base URL if you set it
@@ -13,14 +17,33 @@ final class Http
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
 
-        // This file lives in /pw-admin/libs/util; we want /pw-admin
-        // We'll derive from SCRIPT_NAME.
+        // Find /pw-admin in the script path, regardless of which script is executing
+        // e.g., /pw-admin/index.php -> /pw-admin
+        // e.g., /pw-admin/oauth/callback.php -> /pw-admin
+        // e.g., /some/path/pw-admin/oauth/callback.php -> /some/path/pw-admin
         $script = $_SERVER['SCRIPT_NAME'] ?? '/pw-admin/index.php';
-        // e.g. /pagewright/pw-admin/index.php -> /pagewright/pw-admin
-        $adminPath = preg_replace('#/index\.php$#', '', $script);
-        $adminPath = rtrim($adminPath, '/');
+        
+        // Find the position of /pw-admin in the path
+        if (preg_match('#^(.*?/pw-admin)(?:/|$)#', $script, $matches)) {
+            $adminPath = $matches[1];
+        } else {
+            // Fallback: just use the directory of the script
+            $adminPath = dirname($script);
+        }
 
         return $scheme . '://' . $host . $adminPath;
+    }
+
+    /**
+     * Get the full URL to the admin panel index page
+     */
+    public static function adminUrl(string $query = ''): string
+    {
+        $url = self::baseUrl() . '/index.php';
+        if ($query !== '') {
+            $url .= '?' . ltrim($query, '?');
+        }
+        return $url;
     }
 
     public static function redirect(string $url): void

@@ -55,10 +55,10 @@ try {
     // Cleanup transient oauth session keys
     unset($_SESSION['oauth_state'], $_SESSION['oauth_provider']);
 
-    Http::redirect(Http::baseUrl() . '/index.php');
+    Http::redirect(Http::adminUrl());
 } catch (Throwable $e) {
     // Cleanup transient oauth session keys
     unset($_SESSION['oauth_state'], $_SESSION['oauth_provider']);
 
-    Http::redirect(Http::baseUrl() . '/index.php?error=' . rawurlencode($e->getMessage()));
+    Http::redirect(Http::adminUrl('error=' . rawurlencode($e->getMessage())));
 }

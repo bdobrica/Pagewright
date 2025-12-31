@@ -7,20 +7,29 @@ Session::start();
 Storage::ensureStorage();
 
 $error = $_GET['error'] ?? '';
-$action = $_GET['action'] ?? '';
-$providerName = $_GET['provider'] ?? '';
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
+$providerName = $_POST['provider'] ?? $_GET['provider'] ?? '';
 
 if ($action === 'login') {
     try {
+        // Validate CSRF token
+        $csrfToken = $_POST['csrf_token'] ?? '';
+        if (!Session::validateCsrfToken($csrfToken)) {
+            throw new RuntimeException('Invalid CSRF token. Please try again.');
+        }
+
         $provider = OAuthManager::get($providerName);
         $state = OAuthManager::newState();
         $_SESSION['oauth_state'] = $state;
         $_SESSION['oauth_provider'] = $provider->name();
 
+        // Regenerate CSRF token after successful validation
+        Session::regenerateCsrfToken();
+
         $authUrl = $provider->authorizationUrl(OAuthManager::callbackUrl(), $state);
         Http::redirect($authUrl);
     } catch (Throwable $e) {
-        Http::redirect(Http::baseUrl() . '/index.php?error=' . rawurlencode($e->getMessage()));
+        Http::redirect(Http::adminUrl('error=' . rawurlencode($e->getMessage())));
     }
 }
 
@@ -65,7 +74,7 @@ $adminCount = Storage::adminCount();
     </p>
 
     <article>
-      <form method="get" action="">
+      <form method="post" action="">
         <label for="provider">OAuth provider</label>
         <select id="provider" name="provider" required>
           <option value="" selected disabled>Choose…</option>
@@ -74,6 +83,7 @@ $adminCount = Storage::adminCount();
         </select>
 
         <input type="hidden" name="action" value="login">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(Session::csrfToken()) ?>">
         <button type="submit">Continue</button>
       </form>
     </article>
