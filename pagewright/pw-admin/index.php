@@ -58,6 +58,7 @@ $sessionExpired = isset($_GET['session_expired']) && $_GET['session_expired'] ==
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars(APP_NAME) ?> Admin</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/picocss/2.1.1/pico.min.css">
+  <link rel="stylesheet" href="<?= htmlspecialchars(Http::baseUrl() . '/assets/css/editor.css') ?>">
 </head>
 <body>
 <main class="container">
@@ -110,16 +111,56 @@ $sessionExpired = isset($_GET['session_expired']) && $_GET['session_expired'] ==
     </article>
 
   <?php else: ?>
-    <h1>Dashboard</h1>
-    <article>
-      <p>You're logged in.</p>
+    <h1>✨ Edit Your Site</h1>
+    <p class="text-muted">Tell the AI what you want to change - it will figure out the rest.</p>
+    
+    <!-- Chat Container -->
+    <div class="chat-container">
+      
+      <!-- Conversation History -->
+      <div id="conversation" class="conversation">
+        <div class="welcome-message">
+          <h3>👋 Welcome to Pagewright!</h3>
+          <p>I can help you edit your website. Just tell me what you'd like to do.</p>
+          <p><strong>Examples:</strong></p>
+          <ul>
+            <li>"Add a contact page with email and phone number"</li>
+            <li>"Update the home page with a pricing section"</li>
+            <li>"Create a blog page with recent posts"</li>
+            <li>"Change the site colors to blue and white"</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Input Area -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea 
+            id="prompt-input" 
+            placeholder="What would you like to do?"
+            rows="3"></textarea>
+          <button id="send-btn" type="button">Send</button>
+        </div>
+        <div class="action-bar">
+          <button id="reset-btn" type="button" class="secondary">New Conversation</button>
+          <button id="publish-all-btn" type="button" class="contrast">Publish Site</button>
+          <a href="/?preview=true" target="_blank" class="preview-link">View Preview →</a>
+        </div>
+      </div>
+      
+    </div>
+    
+    <!-- Account Info (collapsed) -->
+    <details class="account-details">
+      <summary>👤 Account</summary>
       <ul>
         <li><strong>Provider:</strong> <?= htmlspecialchars($user['provider'] ?? '') ?></li>
         <li><strong>Name:</strong> <?= htmlspecialchars($user['name'] ?? '') ?></li>
         <li><strong>Email:</strong> <?= htmlspecialchars($user['email'] ?? '') ?></li>
       </ul>
-      <p style="opacity:0.8">Next: add your “Prompt → Preview → Publish” screen here.</p>
-    </article>
+    </details>
+    
+    <script src="<?= htmlspecialchars(Http::baseUrl() . '/assets/js/editor.js') ?>"></script>
   <?php endif; ?>
 
 </main>
