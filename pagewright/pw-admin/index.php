@@ -11,11 +11,21 @@ $action = $_POST['action'] ?? $_GET['action'] ?? '';
 $providerName = $_POST['provider'] ?? $_GET['provider'] ?? '';
 
 if ($action === 'login') {
+    $limiter = new RateLimiter('login', 5, 300); // 5 attempts per 5 minutes
+    
+    if ($limiter->isLimited()) {
+        $resetTime = $limiter->getResetTime();
+        $minutes = ceil($resetTime / 60);
+        Http::redirect(Http::adminUrl('error=' . rawurlencode("Too many login attempts. Please try again in $minutes minute(s).")));
+    }
+    
     try {
         // Validate CSRF token
         $csrfToken = $_POST['csrf_token'] ?? '';
         if (!Session::validateCsrfToken($csrfToken)) {
-            throw new RuntimeException('Invalid CSRF token. Please try again.');
+            $limiter->recordAttempt();
+            Logger::security('Invalid CSRF token on login attempt');
+            throw new RuntimeException('Invalid security token. Please refresh the page and try again.');
         }
 
         $provider = OAuthManager::get($providerName);
@@ -29,13 +39,17 @@ if ($action === 'login') {
         $authUrl = $provider->authorizationUrl(OAuthManager::callbackUrl(), $state);
         Http::redirect($authUrl);
     } catch (Throwable $e) {
-        Http::redirect(Http::adminUrl('error=' . rawurlencode($e->getMessage())));
+        $limiter->recordAttempt();
+        $errorMessage = Logger::sanitizeException($e, 'Authentication failed. Please try again.');
+        Http::redirect(Http::adminUrl('error=' . rawurlencode($errorMessage)));
     }
 }
 
-$isLoggedIn = Session::isLoggedIn();
+// Validate session and check for timeout
+$isLoggedIn = Session::validate();
 $user = Session::user();
 $adminCount = Storage::adminCount();
+$sessionExpired = isset($_GET['session_expired']) && $_GET['session_expired'] === '1';
 ?>
 <!doctype html>
 <html lang="en">
@@ -60,6 +74,13 @@ $adminCount = Storage::adminCount();
     <article aria-label="Error" style="border-left: 4px solid var(--pico-del-color, #d93526); padding-left: 1rem;">
       <strong>Authentication error:</strong>
       <p><?= htmlspecialchars($error) ?></p>
+    </article>
+  <?php endif; ?>
+
+  <?php if ($sessionExpired): ?>
+    <article aria-label="Session Expired" style="border-left: 4px solid var(--pico-color-amber-500, #f59e0b); padding-left: 1rem;">
+      <strong>Session expired:</strong>
+      <p>Your session has expired due to inactivity. Please sign in again.</p>
     </article>
   <?php endif; ?>
 

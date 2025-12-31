@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 final class GoogleProvider implements OAuthProvider
 {
+    private HttpClient $http;
+
+    public function __construct()
+    {
+        $this->http = new HttpClient();
+    }
+
     public function name(): string { return 'google'; }
 
     public function authorizationUrl(string $redirectUri, string $state): string
@@ -30,7 +37,7 @@ final class GoogleProvider implements OAuthProvider
             'grant_type' => 'authorization_code',
         ];
 
-        $resp = $this->postForm($tokenUrl, $payload);
+        $resp = $this->http->postForm($tokenUrl, $payload);
         $data = json_decode($resp, true);
         if (!is_array($data) || empty($data['access_token'])) {
             throw new RuntimeException('Google token exchange failed.');
@@ -42,7 +49,7 @@ final class GoogleProvider implements OAuthProvider
     {
         // OpenID Connect userinfo endpoint
         $url = 'https://openidconnect.googleapis.com/v1/userinfo';
-        $resp = $this->getJson($url, ['Authorization: Bearer ' . $accessToken]);
+        $resp = $this->http->getJson($url, ['Authorization: Bearer ' . $accessToken]);
         $data = json_decode($resp, true);
 
         if (!is_array($data) || empty($data['sub'])) {
@@ -56,41 +63,5 @@ final class GoogleProvider implements OAuthProvider
             'name' => (string)($data['name'] ?? ''),
             'avatar' => (string)($data['picture'] ?? ''),
         ];
-    }
-
-    private function postForm(string $url, array $fields): string
-    {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => http_build_query($fields, '', '&'),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $out = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($out === false || $code >= 400) {
-            throw new RuntimeException('HTTP error contacting Google.');
-        }
-        curl_close($ch);
-        return $out;
-    }
-
-    private function getJson(string $url, array $headers): string
-    {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => array_merge($headers, ['Accept: application/json']),
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $out = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($out === false || $code >= 400) {
-            throw new RuntimeException('HTTP error fetching Google profile.');
-        }
-        curl_close($ch);
-        return $out;
     }
 }

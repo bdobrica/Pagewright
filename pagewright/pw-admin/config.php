@@ -29,5 +29,15 @@ define('GITHUB_CLIENT_SECRET', getenv('GITHUB_CLIENT_SECRET') ?: 'YOUR_GITHUB_CL
 define('GOOGLE_SCOPES', ['openid', 'email', 'profile']);
 define('GITHUB_SCOPES', ['read:user', 'user:email']);
 
+// --- OpenAI API Configuration ---
+// Get your API key from https://platform.openai.com/api-keys
+define('OPENAI_API_KEY', getenv('OPENAI_API_KEY') ?: 'YOUR_OPENAI_API_KEY');
+define('OPENAI_MODEL', getenv('OPENAI_MODEL') ?: 'gpt-4o'); // Default model
+define('OPENAI_API_BASE_URL', getenv('OPENAI_API_BASE_URL') ?: 'https://api.openai.com/v1'); // Allow custom endpoints
+
 // Session settings
 define('SESSION_NAME', 'pagewright_admin');
+define('SESSION_TIMEOUT', 1800); // 30 minutes in seconds
+
+// Debug mode (set to true for development, false for production)
+define('DEBUG_MODE', getenv('DEBUG_MODE') === 'true' || getenv('DEBUG_MODE') === '1');

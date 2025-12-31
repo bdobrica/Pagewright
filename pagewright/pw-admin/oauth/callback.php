@@ -6,19 +6,37 @@ require_once __DIR__ . '/../load.php';
 Session::start();
 Storage::ensureStorage();
 
+// Rate limit OAuth callbacks to prevent abuse
+$limiter = new RateLimiter('oauth_callback', 10, 300); // 10 attempts per 5 minutes
+
+if ($limiter->isLimited()) {
+    $resetTime = $limiter->getResetTime();
+    $minutes = ceil($resetTime / 60);
+    Http::redirect(Http::adminUrl('error=' . rawurlencode("Too many authentication attempts. Please try again in $minutes minute(s).")));
+}
+
 try {
     $code  = $_GET['code'] ?? '';
     $state = $_GET['state'] ?? '';
     $err   = $_GET['error'] ?? '';
 
     if ($err) {
-        throw new RuntimeException('Provider returned error: ' . $err);
+        $limiter->recordAttempt();
+        Logger::security('OAuth provider returned error', ['error' => $err]);
+        throw new RuntimeException('Authentication provider error. Please try again.');
     }
     if (!$code) {
-        throw new RuntimeException('Missing authorization code.');
+        $limiter->recordAttempt();
+        Logger::security('Missing OAuth authorization code');
+        throw new RuntimeException('Authentication failed. Missing authorization code.');
     }
     if (!$state || empty($_SESSION['oauth_state']) || !hash_equals((string)$_SESSION['oauth_state'], (string)$state)) {
-        throw new RuntimeException('Invalid state (possible CSRF).');
+        $limiter->recordAttempt();
+        Logger::security('OAuth state mismatch (possible CSRF)', [
+            'expected' => $_SESSION['oauth_state'] ?? 'none',
+            'received' => $state,
+        ]);
+        throw new RuntimeException('Security validation failed. Please try again.');
     }
 
     $providerName = (string)($_SESSION['oauth_provider'] ?? '');
@@ -47,16 +65,30 @@ try {
     }
 
     if (!$existing) {
-        throw new RuntimeException('This account is not an admin on this Pagewright install.');
+        Logger::security('Unauthorized admin login attempt', [
+            'provider' => $profile['provider'],
+            'email' => $profile['email'],
+        ]);
+        throw new RuntimeException('This account is not authorized. Please contact an administrator.');
     }
 
+    Logger::info('User logged in successfully', [
+        'provider' => $profile['provider'],
+        'email' => $profile['email'],
+    ]);
+
     Session::login($profile);
+
+    // Clear rate limiter on successful login
+    $limiter->clear();
 
     // Cleanup transient oauth session keys
     unset($_SESSION['oauth_state'], $_SESSION['oauth_provider']);
 
     Http::redirect(Http::adminUrl());
 } catch (Throwable $e) {
+    // Record failed attempt
+    $limiter->recordAttempt();
     // Cleanup transient oauth session keys
     unset($_SESSION['oauth_state'], $_SESSION['oauth_provider']);
 

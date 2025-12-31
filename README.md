@@ -96,16 +96,62 @@ No local tooling.
 
 ---
 
-## Installation (shared hosting)
+## Installation
+
+### Option 1: Docker (for development)
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/pagewright.git
+   cd pagewright
+   ```
+
+2. **Create your environment file**
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Configure your credentials**
+   
+   Edit `.env` and add your OAuth credentials:
+   
+   - **Google OAuth**: Get credentials from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+     - Create OAuth 2.0 Client ID
+     - Set redirect URI: `http://localhost:8880/pw-admin/oauth/callback.php`
+   
+   - **GitHub OAuth**: Get credentials from [GitHub Settings](https://github.com/settings/developers)
+     - Create new OAuth App
+     - Set callback URL: `http://localhost:8880/pw-admin/oauth/callback.php`
+   
+   - **OpenAI API**: Get your key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+4. **Start the containers**
+   ```bash
+   docker-compose up -d
+   ```
+
+5. **Verify installation**
+   
+   Visit [http://localhost:8880/pw-admin/health.php](http://localhost:8880/pw-admin/health.php) to check system status.
+
+6. **Access the admin panel**
+   
+   Open [http://localhost:8880/pw-admin](http://localhost:8880/pw-admin) and sign in with OAuth.
+
+> 💡 **First login creates the admin user**. The first person to sign in becomes the site administrator.
+
+### Option 2: Shared hosting (for production)
 
 1. Download the Pagewright ZIP
 2. Upload it to your hosting account (via cPanel or FTP)
-3. Make sure PHP 8.x is enabled
-4. Visit `/pw-admin`
-5. Sign in with OAuth
-6. Start building
+3. Copy `.env.example` to `.env` and configure your credentials
+4. Make sure PHP 8.x is enabled
+5. Visit `/pw-admin/health.php` to verify your setup
+6. Visit `/pw-admin` and sign in with OAuth
+7. Start building
 
-> ⚠️ The `storage/` directory must be writable by PHP.
+> ⚠️ The `pw-storage/` directory must be writable by PHP.
+> ⚠️ Use HTTPS URLs for OAuth callbacks in production.
 
 ---
 

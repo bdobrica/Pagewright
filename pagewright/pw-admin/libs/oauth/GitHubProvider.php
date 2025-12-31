@@ -3,6 +3,13 @@ declare(strict_types=1);
 
 final class GitHubProvider implements OAuthProvider
 {
+    private HttpClient $http;
+
+    public function __construct()
+    {
+        $this->http = new HttpClient();
+    }
+
     public function name(): string { return 'github'; }
 
     public function authorizationUrl(string $redirectUri, string $state): string
@@ -27,7 +34,7 @@ final class GitHubProvider implements OAuthProvider
             'redirect_uri' => $redirectUri,
         ];
 
-        $resp = $this->postForm($tokenUrl, $payload, ['Accept: application/json']);
+        $resp = $this->http->postForm($tokenUrl, $payload, ['Accept: application/json']);
         $data = json_decode($resp, true);
         if (!is_array($data) || empty($data['access_token'])) {
             throw new RuntimeException('GitHub token exchange failed.');
@@ -44,7 +51,7 @@ final class GitHubProvider implements OAuthProvider
             'Accept: application/vnd.github+json',
             'User-Agent: Pagewright',
         ];
-        $resp = $this->getJson($url, $headers);
+        $resp = $this->http->getJson($url, $headers);
         $data = json_decode($resp, true);
 
         if (!is_array($data) || empty($data['id'])) {
@@ -58,41 +65,5 @@ final class GitHubProvider implements OAuthProvider
             'name' => (string)($data['name'] ?? $data['login'] ?? ''),
             'avatar' => (string)($data['avatar_url'] ?? ''),
         ];
-    }
-
-    private function postForm(string $url, array $fields, array $extraHeaders = []): string
-    {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => http_build_query($fields, '', '&'),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => array_merge(['Content-Type: application/x-www-form-urlencoded'], $extraHeaders),
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $out = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($out === false || $code >= 400) {
-            throw new RuntimeException('HTTP error contacting GitHub.');
-        }
-        curl_close($ch);
-        return $out;
-    }
-
-    private function getJson(string $url, array $headers): string
-    {
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_TIMEOUT => 20,
-        ]);
-        $out = curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        if ($out === false || $code >= 400) {
-            throw new RuntimeException('HTTP error fetching GitHub profile.');
-        }
-        curl_close($ch);
-        return $out;
     }
 }
