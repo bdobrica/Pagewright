@@ -77,11 +77,15 @@ class Publisher
                 throw new \Exception("Failed to write preview file: {$filePath}");
             }
             
+            // Generate clean router-based URL with ?preview=true
+            $slug = $page['slug'] === 'index' ? '/' : '/' . $page['slug'];
+            $cleanUrl = $slug . '?preview=true';
+            
             return [
                 'success' => true,
                 'file' => $fileName,
                 'path' => $filePath,
-                'url' => '/pw-public/preview/' . $fileName,
+                'url' => $cleanUrl,
                 'page' => $page
             ];
             
@@ -292,7 +296,9 @@ class Publisher
             return null;
         }
         
-        return '/pw-public/preview/' . $fileName;
+        // Return clean router-based URL with ?preview=true
+        $slug = $page['slug'] === 'index' ? '/' : '/' . $page['slug'];
+        return $slug . '?preview=true';
     }
     
     /**
@@ -316,6 +322,7 @@ class Publisher
             return null;
         }
         
-        return '/pw-public/site/' . $fileName;
+        // Return clean router-based URL
+        return $page['slug'] === 'index' ? '/' : '/' . $page['slug'];
     }
 }

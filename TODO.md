@@ -228,6 +228,8 @@
   - Published site has clean links without preview parameters
   - Supports both `?` and `&` for URLs with existing query parameters
   - Works in both template-based and fallback navigation rendering
+  - Fixed preview URLs to use router-based clean URLs (e.g., `/contact?preview=true` instead of `/preview/contact.html`)
+  - Fixed double nesting of `pw-log` directory (was creating `pw-log/pw-log/`)
 
 ### Phase 3: Change operations and changelog system ✅
 

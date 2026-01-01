@@ -124,8 +124,8 @@ class EditWorkflow
             $previewUrl = null;
             if ($options['auto_preview'] ?? true) {
                 try {
-                    $this->publisher->compileToPreview($pageId);
-                    $previewUrl = "/preview/{$pageId}.html";
+                    $previewResult = $this->publisher->compileToPreview($pageId);
+                    $previewUrl = $previewResult['url'] ?? null;
                 } catch (\Exception $e) {
                     // Preview failure doesn't fail the operation
                 }
@@ -239,11 +239,11 @@ class EditWorkflow
     public function previewPage(string $pageId): array
     {
         try {
-            $this->publisher->compileToPreview($pageId);
+            $previewResult = $this->publisher->compileToPreview($pageId);
             
             return [
                 'success' => true,
-                'preview_url' => "/preview/{$pageId}.html",
+                'preview_url' => $previewResult['url'] ?? null,
                 'error' => null
             ];
             

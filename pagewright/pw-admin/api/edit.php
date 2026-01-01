@@ -48,7 +48,7 @@ try {
     $basePath = dirname(__DIR__, 2);
     $contentManager = new ContentManager($basePath . '/pw-content');
     $themeManager = new ThemeManager($basePath . '/pw-themes');
-    $changeLogger = new ChangeLogger($basePath . '/pw-log');
+    $changeLogger = new ChangeLogger($basePath);
     $engine = new OperationsEngine($basePath, $changeLogger, $contentManager, $themeManager);
     $compiler = new Compiler($contentManager, $themeManager);
     $publisher = new Publisher($compiler, $contentManager, $basePath);

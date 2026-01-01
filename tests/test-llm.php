@@ -26,10 +26,10 @@ use Pagewright\Compiler\Compiler;
 echo "=== LLM Integration Test ===\n\n";
 
 // Paths (from /tests to /pagewright)
-$contentPath = __DIR__ . '/../pagewright/pw-content';
-$themesPath = __DIR__ . '/../pagewright/pw-themes';
-$publicPath = __DIR__ . '/../pagewright/pw-public';
-$logPath = __DIR__ . '/../pagewright/pw-log';
+$basePath = __DIR__ . '/../pagewright';
+$contentPath = $basePath . '/pw-content';
+$themesPath = $basePath . '/pw-themes';
+$publicPath = $basePath . '/pw-public';
 
 // Test 1: Load config and create LLM client
 echo "Test 1: Load LLM Configuration\n";
@@ -84,8 +84,8 @@ echo "----------------------------------------\n";
 try {
     $contentManager = new ContentManager($contentPath);
     $themeManager = new ThemeManager($themesPath);
-    $changeLogger = new ChangeLogger($logPath);
-    $engine = new OperationsEngine(null, $changeLogger, $contentManager, $themeManager);
+    $changeLogger = new ChangeLogger($basePath);
+    $engine = new OperationsEngine($basePath, $changeLogger, $contentManager, $themeManager);
     $compiler = new Compiler($contentManager, $themeManager);
     $publisher = new Publisher($compiler, $contentManager, $publicPath);
     
@@ -233,7 +233,7 @@ try {
 echo "=== Test Summary ===\n";
 echo "✅ All tests passed!\n";
 echo "\nNext steps:\n";
-echo "1. Check preview at: http://localhost:8880/preview/home.html\n";
+echo "1. Check preview at: http://localhost:8880/?preview=true\n";
 echo "2. Review changelog at: pw-log/patches/\n";
 echo "3. Publish when ready: workflow->publishPage('home')\n";
 echo "4. Build admin UI for natural language editing\n";
