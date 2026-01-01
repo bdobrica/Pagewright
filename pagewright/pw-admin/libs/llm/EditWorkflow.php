@@ -286,18 +286,15 @@ class EditWorkflow
      * Rollback a changeset
      * 
      * @param string $changesetId Changeset ID to rollback
-     * @param string $actor Who is performing the rollback
+     * @param string $actor Who is performing the rollback (unused but kept for API consistency)
      * @return array Result with 'success' => bool, 'error' => string|null
      */
     public function rollback(string $changesetId, string $actor): array
     {
         try {
-            $this->engine->rollbackChangeSet($changesetId, $actor);
+            $result = $this->engine->rollbackToChange($changesetId);
             
-            return [
-                'success' => true,
-                'error' => null
-            ];
+            return $result;
             
         } catch (\Exception $e) {
             return [

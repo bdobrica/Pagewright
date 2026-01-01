@@ -209,7 +209,7 @@ try {
             
         case 'publish_all':
             // Publish all non-draft pages
-            $result = $publisher->publishAll();
+            $result = $publisher->publishAllPages();
             
             header('Content-Type: application/json');
             echo json_encode([
@@ -229,7 +229,7 @@ try {
                 exit;
             }
             
-            $result = $workflow->rollback($changesetId);
+            $result = $workflow->rollback($changesetId, $actor);
             
             header('Content-Type: application/json');
             echo json_encode($result);

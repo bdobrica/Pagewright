@@ -9,17 +9,14 @@
     "site_description": "A simple, beautiful website built with Pagewright",
     "site_tagline": "Write your story",
     "logo_url": "",
-    "primary_color": "#0066cc",
-    "secondary_color": "#6c757d",
-    "accent_color": "#28a745",
-    "background_color": "#ffffff",
-    "text_color": "#333333",
-    "link_color": "#0066cc",
-    "font_family_heading": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-    "font_family_body": "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
-    "max_content_width": "1200px",
-    "header_height": "auto",
-    "footer_text": "© 2025 My Pagewright Site. All rights reserved."
+    "primary_color": "#2563eb",
+    "text_color": "#1f2937",
+    "bg_color": "#ffffff",
+    "border_color": "#e5e7eb",
+    "hover_bg": "#f3f4f6",
+    "font_family": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    "max_width": "1200px",
+    "footer_text": "© 2026 Pagewright. Built with minimal HTML and CSS."
   },
   
   "regions": {
@@ -69,7 +66,6 @@
   
   "assets": {
     "css": [
-      "https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css",
       "assets/theme.css"
     ],
     "js": [

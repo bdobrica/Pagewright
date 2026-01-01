@@ -32,7 +32,7 @@ try {
     // Paths
     $contentPath = __DIR__ . '/../pagewright/pw-content';
     $themesPath = __DIR__ . '/../pagewright/pw-themes';
-    $publicPath = __DIR__ . '/../pagewright/pw-public';
+    $basePath = __DIR__ . '/../pagewright'; // Base path, Publisher will add /pw-public
     
     // Test 1: Load content
     echo "1. Testing ContentManager...\n";
@@ -50,7 +50,7 @@ try {
     echo "2. Testing compilation to preview...\n";
     $themeManager = new \Pagewright\Content\ThemeManager($themesPath);
     $compiler = new \Pagewright\Compiler\Compiler($contentManager, $themeManager);
-    $publisher = new Publisher($compiler, $contentManager, $publicPath);
+    $publisher = new Publisher($compiler, $contentManager, $basePath);
     
     foreach ($pages as $page) {
         echo "   Compiling {$page['id']}... ";

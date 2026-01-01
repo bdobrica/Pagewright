@@ -1,4 +1,4 @@
-<ul>
+<ul class="menu">
 <?php
 // Recursive function to render nav items - wrapped in check to prevent redeclaration
 if (!function_exists('renderNavItemsHelper')) {
@@ -9,18 +9,21 @@ if (!function_exists('renderNavItemsHelper')) {
                          (isset($item['pageId']) && $item['pageId'] === $currentSlug));
             $activeClass = $isActive ? ' aria-current="page"' : '';
             
-            echo '<li>';
-            echo '<a href="' . htmlspecialchars($item['href']) . '"' . $activeClass . '>';
+            ?><li<?php
+            if (!empty($item['children'])) {
+                echo ' class="has-dropdown"';
+            }
+            ?>><a href="<?php echo htmlspecialchars($item['href']); ?>"<?php echo $activeClass; ?>><?php
             echo htmlspecialchars($item['label']);
-            echo '</a>';
+            ?></a><?php
             
             if (!empty($item['children'])) {
-                echo '<ul>';
+                ?><ul><?php
                 renderNavItemsHelper($item['children'], $currentSlug);
-                echo '</ul>';
+                ?></ul><?php
             }
             
-            echo '</li>';
+            ?></li><?php
         }
     }
 }

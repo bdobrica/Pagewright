@@ -111,9 +111,52 @@ class ContentManager
             return null;
         }
         
-        // Extract markdown content (everything after first line)
-        $lines = explode("\n", $content, 2);
-        $markdown = isset($lines[1]) ? trim($lines[1]) : '';
+        // Extract markdown content (everything after the JSON frontmatter block)
+        // Find the closing brace of the JSON
+        $jsonStart = strpos($content, '{');
+        if ($jsonStart === false) {
+            $markdown = $content;
+        } else {
+            // Find matching closing brace
+            $braceCount = 0;
+            $jsonEnd = $jsonStart;
+            $inString = false;
+            $escaped = false;
+            
+            for ($i = $jsonStart; $i < strlen($content); $i++) {
+                $char = $content[$i];
+                
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+                
+                if ($char === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+                
+                if ($char === '"') {
+                    $inString = !$inString;
+                    continue;
+                }
+                
+                if (!$inString) {
+                    if ($char === '{') {
+                        $braceCount++;
+                    } elseif ($char === '}') {
+                        $braceCount--;
+                        if ($braceCount === 0) {
+                            $jsonEnd = $i + 1;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            // Get everything after the JSON block
+            $markdown = trim(substr($content, $jsonEnd));
+        }
         
         return [
             'id' => $frontMatter['id'] ?? '',
