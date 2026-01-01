@@ -11,6 +11,10 @@ Session::start();
 
 if (!Session::validate()) {
     http_response_code(401);
+    Logger::warning('Upload attempted without valid session', [
+        'ip' => $_SERVER['REMOTE_ADDR'] ?? 'unknown',
+        'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+    ]);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -18,6 +22,10 @@ if (!Session::validate()) {
 try {
     // Ensure we have a file upload
     if (empty($_FILES['file'])) {
+        Logger::warning('Upload with no file', [
+            'post' => $_POST,
+            'files' => array_keys($_FILES)
+        ]);
         throw new RuntimeException('No file uploaded');
     }
     
@@ -81,7 +89,7 @@ try {
     // Generate thumbnail for images
     $isImage = strpos($mimeType, 'image/') === 0 && $mimeType !== 'image/svg+xml';
     
-    if ($isImage) {
+    if ($isImage && function_exists('imagecreatefromjpeg')) {
         $thumbFilename = 'thumb_' . $safeFilename;
         $thumbPath = $uploadDir . 'thumbs/' . $thumbFilename;
         
@@ -95,6 +103,10 @@ try {
             // Continue without thumbnail
             $thumbPath = null;
         }
+    } elseif ($isImage && !function_exists('imagecreatefromjpeg')) {
+        Logger::warning('GD extension not available - thumbnail not created', [
+            'file' => $safeFilename,
+        ]);
     }
     
     // Build file metadata

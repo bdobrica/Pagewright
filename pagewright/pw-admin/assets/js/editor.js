@@ -56,8 +56,14 @@
         }
         
         if (attachFileBtn && fileInput) {
-            attachFileBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', handleFileSelect);
+            attachFileBtn.addEventListener('click', () => {
+                console.log('Attach files button clicked');
+                fileInput.click();
+            });
+            fileInput.addEventListener('change', (e) => {
+                console.log('File input changed, files:', e.target.files.length);
+                handleFileSelect(e);
+            });
         }
     }
     
@@ -69,9 +75,9 @@
                 const url = e.target.dataset.url;
                 try {
                     await navigator.clipboard.writeText(url);
-                    showStatus('URL copied to clipboard', 'success');
+                    addSystemMessage('✓ URL copied to clipboard');
                 } catch (err) {
-                    showStatus('Failed to copy URL', 'error');
+                    addErrorMessage('Failed to copy URL');
                 }
             });
         });
@@ -83,13 +89,13 @@
                 if (!confirm('Delete this file?')) return;
                 
                 try {
-                    showStatus('Deleting file...', 'info');
+                    addSystemMessage('Deleting file...');
                     await deleteMediaFile(id);
                     // Remove from DOM
                     e.target.closest('.media-item').remove();
-                    showStatus('File deleted', 'success');
+                    addSystemMessage('✓ File deleted');
                 } catch (err) {
-                    showStatus('Failed to delete file: ' + err.message, 'error');
+                    addErrorMessage('Failed to delete file: ' + err.message);
                 }
             });
         });
@@ -123,13 +129,14 @@
         
         for (const file of files) {
             try {
-                showStatus('Uploading ' + file.name + '...', 'info');
+                addSystemMessage('Uploading ' + file.name + '...');
                 const uploadedFile = await uploadFile(file);
                 uploadedFiles.push(uploadedFile);
                 renderFileList();
-                showStatus('Uploaded ' + file.name, 'success');
+                addSystemMessage('✓ Uploaded ' + file.name);
             } catch (error) {
-                showStatus('Failed to upload ' + file.name + ': ' + error.message, 'error');
+                addErrorMessage('Failed to upload ' + file.name + ': ' + error.message);
+                console.error('Upload error:', error);
             }
         }
         
@@ -139,15 +146,26 @@
     
     // Upload file
     async function uploadFile(file) {
+        console.log('Uploading file:', file.name, file.size, file.type);
+        
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch('api/upload.php', {
+        const response = await fetch('/pw-admin/api/upload.php', {
             method: 'POST',
             body: formData
         });
         
+        console.log('Upload response status:', response.status);
+        
+        if (!response.ok) {
+            const text = await response.text();
+            console.error('Upload failed:', text);
+            throw new Error('Upload failed with status ' + response.status);
+        }
+        
         const data = await response.json();
+        console.log('Upload response:', data);
         
         if (!data.success) {
             throw new Error(data.error || 'Upload failed');
