@@ -216,10 +216,22 @@ class Compiler
      */
     private function addPreviewParam(string $url): string
     {
-        if (strpos($url, '?') !== false) {
-            return $url . '&preview=true';
+        // Split URL into base and fragment
+        $fragment = '';
+        if (strpos($url, '#') !== false) {
+            list($url, $fragment) = explode('#', $url, 2);
+            $fragment = '#' . $fragment;
         }
-        return $url . '?preview=true';
+        
+        // Add query parameter
+        if (strpos($url, '?') !== false) {
+            $url .= '&preview=true';
+        } else {
+            $url .= '?preview=true';
+        }
+        
+        // Append fragment at the end
+        return $url . $fragment;
     }
     
     /**

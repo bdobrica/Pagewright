@@ -12,7 +12,18 @@ if (!function_exists('renderNavItemsHelper')) {
             // Add preview parameter if in preview mode
             $href = $item['href'];
             if ($isPreview) {
+                // Split URL into base and fragment
+                $fragment = '';
+                if (strpos($href, '#') !== false) {
+                    list($href, $fragment) = explode('#', $href, 2);
+                    $fragment = '#' . $fragment;
+                }
+                
+                // Add query parameter
                 $href .= (strpos($href, '?') !== false) ? '&preview=true' : '?preview=true';
+                
+                // Append fragment at the end
+                $href .= $fragment;
             }
             
             ?><li<?php
