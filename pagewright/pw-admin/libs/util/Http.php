@@ -6,6 +6,7 @@ final class Http
     /**
      * Get the base URL to the admin panel directory (e.g., http://localhost:8880/pw-admin)
      * This works from any script within the admin panel.
+     * @return string Base URL to admin panel
      */
     public static function baseUrl(): string
     {
@@ -36,6 +37,8 @@ final class Http
 
     /**
      * Get the full URL to the admin panel index page
+     * @param string $query Optional query string (with or without leading ?)
+     * @return string Full URL to admin index page
      */
     public static function adminUrl(string $query = ''): string
     {
@@ -46,12 +49,22 @@ final class Http
         return $url;
     }
 
+    /**
+     * Redirect to a URL and exit
+     * @param string $url Target URL
+     * @return never
+     */
     public static function redirect(string $url): void
     {
         header('Location: ' . $url, true, 302);
         exit;
     }
 
+    /**
+     * Build URL query string from parameters
+     * @param array<string, mixed> $params Query parameters
+     * @return string URL-encoded query string
+     */
     public static function query(array $params): string
     {
         return http_build_query($params, '', '&', PHP_QUERY_RFC3986);

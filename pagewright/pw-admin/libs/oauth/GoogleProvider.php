@@ -10,8 +10,18 @@ final class GoogleProvider implements OAuthProvider
         $this->http = new HttpClient();
     }
 
+    /**
+     * Get provider name
+     * @return string Provider identifier
+     */
     public function name(): string { return 'google'; }
 
+    /**
+     * Generate Google OAuth authorization URL
+     * @param string $redirectUri Callback URL
+     * @param string $state CSRF state parameter
+     * @return string Authorization URL
+     */
     public function authorizationUrl(string $redirectUri, string $state): string
     {
         $params = [
@@ -26,6 +36,13 @@ final class GoogleProvider implements OAuthProvider
         return 'https://accounts.google.com/o/oauth2/v2/auth?' . Http::query($params);
     }
 
+    /**
+     * Exchange authorization code for access token
+     * @param string $redirectUri Callback URL (must match authorization)
+     * @param string $code Authorization code from Google
+     * @return string Access token
+     * @throws RuntimeException if token exchange fails
+     */
     public function tokenFromCode(string $redirectUri, string $code): string
     {
         $tokenUrl = 'https://oauth2.googleapis.com/token';
@@ -45,6 +62,12 @@ final class GoogleProvider implements OAuthProvider
         return (string)$data['access_token'];
     }
 
+    /**
+     * Fetch user profile from Google
+     * @param string $accessToken OAuth access token
+     * @return array{provider: string, subject: string, email: string, name: string, avatar: string} Normalized user data
+     * @throws RuntimeException if user fetch fails
+     */
     public function fetchUser(string $accessToken): array
     {
         // OpenID Connect userinfo endpoint

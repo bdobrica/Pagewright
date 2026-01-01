@@ -34,22 +34,39 @@ final class Storage
         $secretFile = self::secretFile();
         if (!file_exists($secretFile)) {
             $secret = bin2hex(random_bytes(32));
+            
+            // Verify the secret was generated correctly before writing
+            if (strlen($secret) !== 64) {
+                throw new RuntimeException('Failed to generate valid secret key. Expected 64 characters, got ' . strlen($secret) . '.');
+            }
+            
             $result = @file_put_contents($secretFile, $secret);
             if ($result === false) {
                 throw new RuntimeException('Failed to create secret file: ' . $secretFile . '. Check file permissions.');
             }
-            // Verify the secret was written correctly
-            if (strlen($secret) !== 64) {
-                throw new RuntimeException('Failed to generate valid secret key.');
+            
+            // Verify the file was written successfully by reading it back
+            $written = @file_get_contents($secretFile);
+            if ($written === false || $written !== $secret) {
+                @unlink($secretFile); // Clean up failed file
+                throw new RuntimeException('Failed to verify secret file creation. Check file permissions and disk space.');
             }
         }
     }
 
+    /**
+     * Get path to users.json file
+     * @return string Absolute path to users file
+     */
     public static function usersFile(): string
     {
         return STORAGE_PATH . '/users.json';
     }
 
+    /**
+     * Get path to secret.key file
+     * @return string Absolute path to secret file
+     */
     public static function secretFile(): string
     {
         return STORAGE_PATH . '/secret.key';
@@ -57,7 +74,7 @@ final class Storage
 
     /**
      * Load users from storage
-     * @return array User data structure with 'admins' array
+     * @return array{admins: array<int, array{provider: string, subject: string, email: string, name: string, avatar: string, created_at: string}>} User data structure with 'admins' array
      * @throws RuntimeException if file cannot be read or parsed
      */
     public static function loadUsers(): array
@@ -103,12 +120,22 @@ final class Storage
         }
     }
 
+    /**
+     * Get count of admin users
+     * @return int Number of admin users
+     */
     public static function adminCount(): int
     {
         $u = self::loadUsers();
         return isset($u['admins']) && is_array($u['admins']) ? count($u['admins']) : 0;
     }
 
+    /**
+     * Find an admin by provider and subject
+     * @param string $provider OAuth provider name (e.g., 'github', 'google')
+     * @param string $subject Provider-specific user ID
+     * @return array{provider: string, subject: string, email: string, name: string, avatar: string, created_at: string}|null Admin data or null if not found
+     */
     public static function findAdmin(string $provider, string $subject): ?array
     {
         $u = self::loadUsers();
@@ -120,6 +147,11 @@ final class Storage
         return null;
     }
 
+    /**
+     * Add a new admin user
+     * @param array{provider: string, subject: string, email: string, name: string, avatar: string, created_at: string} $admin Admin data
+     * @throws RuntimeException if save fails
+     */
     public static function addAdmin(array $admin): void
     {
         $u = self::loadUsers();

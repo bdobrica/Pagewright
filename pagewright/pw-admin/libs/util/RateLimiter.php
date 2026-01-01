@@ -199,6 +199,7 @@ final class RateLimiter
     /**
      * Clean up old rate limit files (run periodically)
      * @param int $olderThanSeconds Delete files older than this many seconds
+     * @return void
      */
     public static function cleanup(int $olderThanSeconds = 3600): void
     {

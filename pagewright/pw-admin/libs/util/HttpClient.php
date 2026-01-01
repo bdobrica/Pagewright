@@ -11,6 +11,10 @@ final class HttpClient
 {
     private int $timeout;
 
+    /**
+     * Create HTTP client
+     * @param int $timeout Request timeout in seconds
+     */
     public function __construct(int $timeout = 20)
     {
         $this->timeout = $timeout;
@@ -20,8 +24,8 @@ final class HttpClient
      * Make a POST request with form-encoded data
      * 
      * @param string $url Target URL
-     * @param array $fields Form fields to send
-     * @param array $headers Additional HTTP headers
+     * @param array<string, mixed> $fields Form fields to send
+     * @param array<int, string> $headers Additional HTTP headers
      * @return string Response body
      * @throws RuntimeException on HTTP error
      */
@@ -70,8 +74,8 @@ final class HttpClient
      * Make a GET request expecting JSON response
      * 
      * @param string $url Target URL
-     * @param array $headers HTTP headers
-     * @return array Decoded JSON array
+     * @param array<int, string> $headers HTTP headers
+     * @return array<string, mixed> Decoded JSON array
      * @throws RuntimeException on HTTP error
      */
     public function get(string $url, array $headers = []): array
@@ -122,7 +126,7 @@ final class HttpClient
      * Make a GET request expecting JSON response (legacy alias)
      * 
      * @param string $url Target URL
-     * @param array $headers HTTP headers
+     * @param array<int, string> $headers HTTP headers
      * @return string Response body (JSON)
      * @throws RuntimeException on HTTP error
      */
@@ -152,9 +156,9 @@ final class HttpClient
      * Make a POST request with JSON body
      * 
      * @param string $url Target URL
-     * @param array $data Data to encode as JSON
-     * @param array $headers Additional HTTP headers
-     * @return array Decoded JSON response
+     * @param array<string, mixed> $data Data to encode as JSON
+     * @param array<int, string> $headers Additional HTTP headers
+     * @return array<string, mixed> Decoded JSON response
      * @throws RuntimeException on HTTP error
      */
     public function post(string $url, array $data, array $headers = []): array
@@ -234,8 +238,8 @@ final class HttpClient
      * Make a POST request with JSON body (legacy alias)
      * 
      * @param string $url Target URL
-     * @param array $data Data to encode as JSON
-     * @param array $headers Additional HTTP headers
+     * @param array<string, mixed> $data Data to encode as JSON
+     * @param array<int, string> $headers Additional HTTP headers
      * @return string Response body
      * @throws RuntimeException on HTTP error
      */

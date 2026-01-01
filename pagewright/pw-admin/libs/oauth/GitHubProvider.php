@@ -10,8 +10,18 @@ final class GitHubProvider implements OAuthProvider
         $this->http = new HttpClient();
     }
 
+    /**
+     * Get provider name
+     * @return string Provider identifier
+     */
     public function name(): string { return 'github'; }
 
+    /**
+     * Generate GitHub OAuth authorization URL
+     * @param string $redirectUri Callback URL
+     * @param string $state CSRF state parameter
+     * @return string Authorization URL
+     */
     public function authorizationUrl(string $redirectUri, string $state): string
     {
         $params = [
@@ -24,6 +34,13 @@ final class GitHubProvider implements OAuthProvider
         return 'https://github.com/login/oauth/authorize?' . Http::query($params);
     }
 
+    /**
+     * Exchange authorization code for access token
+     * @param string $redirectUri Callback URL (must match authorization)
+     * @param string $code Authorization code from GitHub
+     * @return string Access token
+     * @throws RuntimeException if token exchange fails
+     */
     public function tokenFromCode(string $redirectUri, string $code): string
     {
         $tokenUrl = 'https://github.com/login/oauth/access_token';
@@ -42,6 +59,12 @@ final class GitHubProvider implements OAuthProvider
         return (string)$data['access_token'];
     }
 
+    /**
+     * Fetch user profile from GitHub
+     * @param string $accessToken OAuth access token
+     * @return array{provider: string, subject: string, email: string, name: string, avatar: string} Normalized user data
+     * @throws RuntimeException if user fetch fails or email is not public
+     */
     public function fetchUser(string $accessToken): array
     {
         // GitHub user API endpoint documented by GitHub. :contentReference[oaicite:5]{index=5}

@@ -21,6 +21,8 @@ final class Logger
 
     /**
      * Log an error
+     * @param string $message Error message
+     * @param array<string, mixed> $context Additional context data
      */
     public static function error(string $message, array $context = []): void
     {
@@ -29,6 +31,8 @@ final class Logger
 
     /**
      * Log a warning
+     * @param string $message Warning message
+     * @param array<string, mixed> $context Additional context data
      */
     public static function warning(string $message, array $context = []): void
     {
@@ -37,6 +41,8 @@ final class Logger
 
     /**
      * Log an info message
+     * @param string $message Info message
+     * @param array<string, mixed> $context Additional context data
      */
     public static function info(string $message, array $context = []): void
     {
@@ -45,6 +51,8 @@ final class Logger
 
     /**
      * Log a security event
+     * @param string $message Security event message
+     * @param array<string, mixed> $context Additional context data
      */
     public static function security(string $message, array $context = []): void
     {
@@ -53,6 +61,9 @@ final class Logger
 
     /**
      * Write a log entry
+     * @param string $level Log level constant
+     * @param string $message Log message
+     * @param array<string, mixed> $context Additional context data
      */
     private static function log(string $level, string $message, array $context): void
     {

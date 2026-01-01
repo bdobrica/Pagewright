@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 final class Session
 {
+    /**
+     * Start a secure session with proper cookie parameters
+     */
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
@@ -17,6 +20,10 @@ final class Session
         }
     }
 
+    /**
+     * Log in a user and regenerate session ID
+     * @param array{provider: string, subject: string, email: string, name: string, avatar: string, created_at: string} $user User data from OAuth provider
+     */
     public static function login(array $user): void
     {
         // Regenerate session ID to prevent session fixation attacks
@@ -28,6 +35,9 @@ final class Session
         $_SESSION['last_activity'] = time();
     }
 
+    /**
+     * Log out the current user and destroy session
+     */
     public static function logout(): void
     {
         $_SESSION = [];
@@ -38,11 +48,19 @@ final class Session
         session_destroy();
     }
 
+    /**
+     * Get the current logged-in user data
+     * @return array{provider: string, subject: string, email: string, name: string, avatar: string, created_at: string}|null User data or null if not logged in
+     */
     public static function user(): ?array
     {
         return $_SESSION['user'] ?? null;
     }
 
+    /**
+     * Check if a user is currently logged in
+     * @return bool True if user is logged in
+     */
     public static function isLoggedIn(): bool
     {
         return !empty($_SESSION['logged_in']) && is_array($_SESSION['user'] ?? null);
@@ -66,6 +84,7 @@ final class Session
 
     /**
      * Update the last activity timestamp
+     * @return void
      */
     public static function refreshActivity(): void
     {
@@ -96,6 +115,7 @@ final class Session
 
     /**
      * Generate a new CSRF token for the current session
+     * @return string CSRF token
      */
     public static function csrfToken(): string
     {
@@ -107,6 +127,8 @@ final class Session
 
     /**
      * Validate a CSRF token against the session token
+     * @param string $token Token to validate
+     * @return bool True if token is valid
      */
     public static function validateCsrfToken(string $token): bool
     {
@@ -118,6 +140,7 @@ final class Session
 
     /**
      * Regenerate CSRF token (call after successful form submission)
+     * @return void
      */
     public static function regenerateCsrfToken(): void
     {
