@@ -76,6 +76,10 @@ If you want to upload a ZIP and start editing your site in a browser - it is.
 - Multiple themes
 - Plugin-style content components
 
+### Recent Updates (January 2026)
+- ✅ Preview navigation: Links in preview mode automatically append `?preview=true` for seamless preview navigation
+- ✅ Compiler link modification: URLs intelligently modified with `?` or `&` based on existing query parameters
+
 ---
 
 ## How Pagewright works

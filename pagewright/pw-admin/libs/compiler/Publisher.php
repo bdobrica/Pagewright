@@ -56,7 +56,12 @@ class Publisher
     public function compileToPreview(string $pageId): array
     {
         try {
+            // Enable preview mode for navigation links
+            $this->compiler->setPreviewMode(true);
             $html = $this->compiler->compilePage($pageId);
+            // Reset preview mode
+            $this->compiler->setPreviewMode(false);
+            
             $page = $this->contentManager->getPageById($pageId);
             
             if (!$page) {
@@ -116,6 +121,8 @@ class Publisher
     public function publishPage(string $pageId): array
     {
         try {
+            // Ensure preview mode is off for published site
+            $this->compiler->setPreviewMode(false);
             $html = $this->compiler->compilePage($pageId);
             $page = $this->contentManager->getPageById($pageId);
             

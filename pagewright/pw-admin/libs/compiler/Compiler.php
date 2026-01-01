@@ -15,6 +15,7 @@ class Compiler
     private MarkdownParser $markdownParser;
     private ComponentParser $componentParser;
     private ComponentRegistry $componentRegistry;
+    private bool $isPreview = false;
     
     public function __construct(
         ?ContentManager $contentManager = null,
@@ -25,6 +26,16 @@ class Compiler
         $this->markdownParser = new MarkdownParser();
         $this->componentParser = new ComponentParser();
         $this->componentRegistry = new ComponentRegistry();
+    }
+    
+    /**
+     * Set preview mode (adds ?preview=true to all links)
+     * 
+     * @param bool $isPreview Whether we're compiling for preview
+     */
+    public function setPreviewMode(bool $isPreview): void
+    {
+        $this->isPreview = $isPreview;
     }
     
     /**
@@ -99,7 +110,7 @@ class Compiler
         
         // Get navigation
         $navItems = $this->contentManager->getNavigation();
-        $menuHtml = $this->renderNavigation($navItems, $page['slug']);
+        $menuHtml = $this->renderNavigation($navItems, $page['slug'], $this->isPreview);
         
         // Render header partial
         $headerHtml = $this->renderPartial('header', [
@@ -145,14 +156,15 @@ class Compiler
      * 
      * @param array $navItems Navigation items
      * @param string $currentSlug Current page slug
+     * @param bool $isPreview Whether this is preview mode
      * @return string Rendered navigation HTML
      */
-    private function renderNavigation(array $navItems, string $currentSlug): string
+    private function renderNavigation(array $navItems, string $currentSlug, bool $isPreview = false): string
     {
         $templatePath = $this->themeManager->getTemplatePath('navigation');
         
         if (!$templatePath || !file_exists($templatePath)) {
-            return $this->renderNavigationFallback($navItems, $currentSlug);
+            return $this->renderNavigationFallback($navItems, $currentSlug, $isPreview);
         }
         
         ob_start();
@@ -165,21 +177,27 @@ class Compiler
      * 
      * @param array $navItems Navigation items
      * @param string $currentSlug Current page slug
+     * @param bool $isPreview Whether this is preview mode
      * @return string HTML
      */
-    private function renderNavigationFallback(array $navItems, string $currentSlug): string
+    private function renderNavigationFallback(array $navItems, string $currentSlug, bool $isPreview = false): string
     {
         $html = '<ul>';
         
         foreach ($navItems as $item) {
+            $href = $item['href'];
+            if ($isPreview) {
+                $href = $this->addPreviewParam($href);
+            }
+            
             $active = ($item['href'] === '/' . $currentSlug) ? ' aria-current="page"' : '';
             $html .= '<li>';
-            $html .= '<a href="' . htmlspecialchars($item['href']) . '"' . $active . '>';
+            $html .= '<a href="' . htmlspecialchars($href) . '"' . $active . '>';
             $html .= htmlspecialchars($item['label']);
             $html .= '</a>';
             
             if (!empty($item['children'])) {
-                $html .= $this->renderNavigationFallback($item['children'], $currentSlug);
+                $html .= $this->renderNavigationFallback($item['children'], $currentSlug, $isPreview);
             }
             
             $html .= '</li>';
@@ -188,6 +206,20 @@ class Compiler
         $html .= '</ul>';
         
         return $html;
+    }
+    
+    /**
+     * Add preview=true parameter to URL
+     * 
+     * @param string $url URL to modify
+     * @return string Modified URL
+     */
+    private function addPreviewParam(string $url): string
+    {
+        if (strpos($url, '?') !== false) {
+            return $url . '&preview=true';
+        }
+        return $url . '?preview=true';
     }
     
     /**

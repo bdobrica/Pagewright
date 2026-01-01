@@ -223,6 +223,12 @@
   - Auto-generate `index.html` from home page
   - Test script confirms: 2 pages compiled successfully
 
+- [x] **Add preview mode navigation** ✅ 2026-01-01
+  - Preview links append `?preview=true` for proper navigation
+  - Published site has clean links without preview parameters
+  - Supports both `?` and `&` for URLs with existing query parameters
+  - Works in both template-based and fallback navigation rendering
+
 ### Phase 3: Change operations and changelog system ✅
 
 **Goal:** Implement safe, reversible change engine before adding LLM.
@@ -476,14 +482,14 @@ Tight sequence for rapid progress:
 - **Medium Priority:** 0/11 (0%)
 - **Low Priority:** 1/9 (11%) - Router implemented ✅
 - **Phase 1 (CMS Model):** 4/4 (100%) ✅
-- **Phase 2 (Compiler):** 4/4 (100%) ✅
+- **Phase 2 (Compiler):** 5/5 (100%) ✅ - Preview navigation added
 - **Phase 3 (Changelog):** 4/4 (100%) ✅
 - **Phase 4 (LLM Integration):** 6/6 (100%) ✅
 - **Phase 5 (Media Library):** 0/3 (0%)
 - **Phase 6 (UX Polish):** 4/10 (40%) - Admin UI complete ✅
 - **7-Day Sprint:** 7/7 (100%) ✅
 
-### Overall: 43/80 items complete (54%)
+### Overall: 44/81 items complete (54%)
 
 ---
 
