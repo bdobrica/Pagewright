@@ -52,7 +52,7 @@ class EditWorkflow
      * @param string $pageId Page ID to edit
      * @param string $instruction User's natural language instruction
      * @param string $actor Who is making the edit
-     * @param array $options Options: 'auto_preview' => bool, 'temperature' => float
+     * @param array $options Options: 'auto_preview' => bool, 'temperature' => float, 'files' => array
      * @return array Result with 'success' => bool, 'changeset' => array, 'preview_url' => string|null, 'errors' => array
      */
     public function editPage(string $pageId, string $instruction, string $actor, array $options = []): array
@@ -60,7 +60,9 @@ class EditWorkflow
         try {
             // 1. Build prompts
             $systemPrompt = $this->promptBuilder->buildSystemPrompt();
-            $userPrompt = $this->promptBuilder->buildEditPrompt($pageId, $instruction);
+            $userPrompt = $this->promptBuilder->buildEditPrompt($pageId, $instruction, [
+                'files' => $options['files'] ?? []
+            ]);
             
             // 2. Call LLM
             $llmOptions = [
@@ -156,7 +158,7 @@ class EditWorkflow
      * 
      * @param string $instruction User's natural language instruction
      * @param string $actor Who is creating the page
-     * @param array $options Options: 'auto_preview' => bool, 'temperature' => float
+     * @param array $options Options: 'auto_preview' => bool, 'temperature' => float, 'files' => array
      * @return array Result with 'success' => bool, 'page_id' => string|null, 'changeset' => array, 'errors' => array
      */
     public function createPage(string $instruction, string $actor, array $options = []): array
@@ -164,7 +166,9 @@ class EditWorkflow
         try {
             // 1. Build prompts
             $systemPrompt = $this->promptBuilder->buildSystemPrompt();
-            $userPrompt = $this->promptBuilder->buildCreatePrompt($instruction);
+            $userPrompt = $this->promptBuilder->buildCreatePrompt($instruction, [
+                'files' => $options['files'] ?? []
+            ]);
             
             // 2. Call LLM
             $llmOptions = [

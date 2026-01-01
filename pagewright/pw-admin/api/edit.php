@@ -67,6 +67,7 @@ try {
         case 'smart_prompt':
             // Smart prompt - LLM figures out what to do
             $prompt = $input['prompt'] ?? '';
+            $files = $input['files'] ?? [];
             
             if (!$prompt) {
                 http_response_code(400);
@@ -83,6 +84,7 @@ try {
             // For now, use create_page workflow which is smart enough
             $result = $workflow->createPage($prompt, $actor, [
                 'auto_preview' => true,
+                'files' => $files,
                 'context' => [
                     'existing_pages' => array_map(fn($p) => ['id' => $p['id'], 'title' => $p['title'], 'slug' => $p['slug']], $pages),
                     'navigation' => $nav
@@ -138,6 +140,7 @@ try {
             // Edit a page with LLM
             $pageId = $input['page_id'] ?? '';
             $instruction = $input['instruction'] ?? '';
+            $files = $input['files'] ?? [];
             
             if (!$pageId || !$instruction) {
                 http_response_code(400);
@@ -147,7 +150,8 @@ try {
             }
             
             $result = $workflow->editPage($pageId, $instruction, $actor, [
-                'auto_preview' => true
+                'auto_preview' => true,
+                'files' => $files
             ]);
             
             header('Content-Type: application/json');
@@ -157,6 +161,7 @@ try {
         case 'create_page':
             // Create a new page with LLM
             $instruction = $input['instruction'] ?? '';
+            $files = $input['files'] ?? [];
             
             if (!$instruction) {
                 http_response_code(400);
@@ -166,7 +171,8 @@ try {
             }
             
             $result = $workflow->createPage($instruction, $actor, [
-                'auto_preview' => true
+                'auto_preview' => true,
+                'files' => $files
             ]);
             
             header('Content-Type: application/json');

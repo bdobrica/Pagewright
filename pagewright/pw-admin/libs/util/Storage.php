@@ -159,4 +159,118 @@ final class Storage
         $u['admins'][] = $admin;
         self::saveUsers($u);
     }
+
+    /**
+     * Get path to media.json file
+     * @return string Absolute path to media metadata file
+     */
+    public static function mediaFile(): string
+    {
+        return STORAGE_PATH . '/media.json';
+    }
+
+    /**
+     * Load media metadata from storage
+     * @return array{files: array<int, array{id: string, filename: string, url: string, thumb_url: string|null, type: string, size: int, uploaded_at: string}>} Media data structure
+     * @throws RuntimeException if file cannot be read or parsed
+     */
+    public static function loadMedia(): array
+    {
+        $mediaFile = self::mediaFile();
+        
+        if (!file_exists($mediaFile)) {
+            return ['files' => []];
+        }
+        
+        $raw = @file_get_contents($mediaFile);
+        
+        if ($raw === false) {
+            throw new RuntimeException('Failed to read media file: ' . $mediaFile . '. Check file permissions.');
+        }
+        
+        $data = json_decode($raw, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new RuntimeException('Invalid JSON in media file: ' . json_last_error_msg());
+        }
+        
+        return is_array($data) ? $data : ['files' => []];
+    }
+
+    /**
+     * Save media metadata to storage
+     * @param array{files: array<int, array{id: string, filename: string, url: string, thumb_url: string|null, type: string, size: int, uploaded_at: string}>} $data Media data structure to save
+     * @throws RuntimeException if file cannot be written
+     */
+    public static function saveMedia(array $data): void
+    {
+        $mediaFile = self::mediaFile();
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        
+        if ($json === false) {
+            throw new RuntimeException('Failed to encode media data as JSON: ' . json_last_error_msg());
+        }
+        
+        $result = @file_put_contents($mediaFile, $json, LOCK_EX);
+        
+        if ($result === false) {
+            throw new RuntimeException('Failed to write media file: ' . $mediaFile . '. Check file permissions.');
+        }
+    }
+
+    /**
+     * Add a media file to the metadata
+     * @param array{id: string, filename: string, url: string, thumb_url: string|null, type: string, size: int, uploaded_at: string} $file File metadata
+     * @throws RuntimeException if save fails
+     */
+    public static function addMediaFile(array $file): void
+    {
+        $media = self::loadMedia();
+        $media['files'] = $media['files'] ?? [];
+        $media['files'][] = $file;
+        self::saveMedia($media);
+    }
+
+    /**
+     * Delete a media file and its metadata
+     * @param string $id File ID
+     * @return bool True if file was deleted, false if not found
+     */
+    public static function deleteMediaFile(string $id): bool
+    {
+        $media = self::loadMedia();
+        $found = false;
+        
+        foreach ($media['files'] as $index => $file) {
+            if ($file['id'] === $id) {
+                // Delete physical files
+                $uploadPath = dirname(__DIR__, 3) . '/pw-public/uploads/';
+                $filename = basename($file['url']);
+                
+                if (file_exists($uploadPath . $filename)) {
+                    @unlink($uploadPath . $filename);
+                }
+                
+                // Delete thumbnail if exists
+                if (!empty($file['thumb_url'])) {
+                    $thumbName = basename($file['thumb_url']);
+                    if (file_exists($uploadPath . 'thumbs/' . $thumbName)) {
+                        @unlink($uploadPath . 'thumbs/' . $thumbName);
+                    }
+                }
+                
+                // Remove from metadata
+                unset($media['files'][$index]);
+                $found = true;
+                break;
+            }
+        }
+        
+        if ($found) {
+            $media['files'] = array_values($media['files']);
+            self::saveMedia($media);
+        }
+        
+        return $found;
+    }
 }

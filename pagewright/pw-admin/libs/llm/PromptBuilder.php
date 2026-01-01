@@ -73,13 +73,14 @@ class PromptBuilder
      * 
      * @param string $pageId Page ID to edit
      * @param string $userInstruction User's natural language instruction
-     * @param array $options Options: 'include_content' => bool, 'include_nav' => bool
+     * @param array $options Options: 'include_content' => bool, 'include_nav' => bool, 'files' => array
      * @return string User prompt with context
      */
     public function buildEditPrompt(string $pageId, string $userInstruction, array $options = []): string
     {
         $includeContent = $options['include_content'] ?? true;
         $includeNav = $options['include_nav'] ?? true;
+        $files = $options['files'] ?? [];
         
         $parts = [];
         
@@ -104,6 +105,12 @@ class PromptBuilder
             $parts[] = "```json\n" . json_encode($nav, JSON_PRETTY_PRINT) . "\n```\n";
         }
         
+        // Add media library context
+        $mediaContext = $this->buildMediaContext($files);
+        if ($mediaContext) {
+            $parts[] = $mediaContext;
+        }
+        
         // Add user instruction
         $parts[] = "# Edit Instruction\n";
         $parts[] = $userInstruction;
@@ -115,12 +122,13 @@ class PromptBuilder
      * Build prompt for creating new page
      * 
      * @param string $userInstruction User's natural language instruction
-     * @param array $options Options for context
+     * @param array $options Options for context: 'include_nav' => bool, 'files' => array
      * @return string User prompt
      */
     public function buildCreatePrompt(string $userInstruction, array $options = []): string
     {
         $includeNav = $options['include_nav'] ?? true;
+        $files = $options['files'] ?? [];
         
         $parts = [];
         
@@ -141,11 +149,93 @@ class PromptBuilder
             $parts[] = "\n";
         }
         
+        // Add media library context
+        $mediaContext = $this->buildMediaContext($files);
+        if ($mediaContext) {
+            $parts[] = $mediaContext;
+        }
+        
         // Add creation instruction
         $parts[] = "# Creation Instruction\n";
         $parts[] = $userInstruction;
         
         return implode("\n", $parts);
+    }
+    
+    /**
+     * Build media library context for LLM
+     * 
+     * @param array $attachedFiles Files attached to current prompt
+     * @return string Media context or empty string
+     */
+    private function buildMediaContext(array $attachedFiles): string
+    {
+        // Load all media from library
+        $media = \Storage::loadMedia();
+        $allFiles = $media['files'] ?? [];
+        
+        if (empty($allFiles) && empty($attachedFiles)) {
+            return '';
+        }
+        
+        $parts = [];
+        $parts[] = "# Available Media Files\n";
+        $parts[] = "You can reference these files in your content using their URLs:\n";
+        
+        // Show attached files first (just uploaded)
+        if (!empty($attachedFiles)) {
+            $parts[] = "\n## Just Uploaded (Use These):\n";
+            foreach ($attachedFiles as $file) {
+                $parts[] = sprintf(
+                    "- **%s** (%s, %s)\n  URL: `%s`",
+                    $file['filename'],
+                    $this->formatFileSize($file['size']),
+                    $file['type'],
+                    $file['url']
+                );
+            }
+        }
+        
+        // Show existing library files
+        if (!empty($allFiles)) {
+            $parts[] = "\n## Media Library:\n";
+            foreach ($allFiles as $file) {
+                $parts[] = sprintf(
+                    "- **%s** (%s, uploaded %s)\n  URL: `%s`",
+                    $file['filename'],
+                    $this->formatFileSize($file['size']),
+                    $file['uploaded_at'],
+                    $file['url']
+                );
+            }
+        }
+        
+        $parts[] = "\nUse the `:::image` component with these URLs, for example:";
+        $parts[] = "```markdown";
+        $parts[] = ":::image";
+        $parts[] = "src: https://example.com/pw-public/uploads/file.jpg";
+        $parts[] = "alt: Description";
+        $parts[] = ":::";
+        $parts[] = "```\n";
+        
+        return implode("\n", $parts);
+    }
+    
+    /**
+     * Format file size for display
+     * 
+     * @param int $bytes File size in bytes
+     * @return string Formatted size
+     */
+    private function formatFileSize(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return $bytes . ' B';
+        } elseif ($bytes < 1048576) {
+            return round($bytes / 1024, 1) . ' KB';
+        } else {
+            return round($bytes / 1048576, 1) . ' MB';
+        }
     }
     
     /**

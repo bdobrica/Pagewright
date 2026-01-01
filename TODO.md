@@ -332,28 +332,32 @@
   - Real OpenAI API integration working
   - Example changeset: chg_20251231_122411_1aaf50fc
 
-### Phase 5: Media Library
+### Phase 5: Media Library ✅
 
 **Goal:** Support images and file uploads for real sites.
 
-- [ ] **Create upload system**
-  - Directory: `pw-public/uploads/`
-  - Admin upload endpoint
-  - Store original files
+- [x] **Create upload system** ✅ 2026-01-01
+  - Directory: `pw-public/uploads/` with thumbnails subfolder
+  - Admin upload endpoint: `pw-admin/api/upload.php`
+  - Store original files with safe naming (ID + timestamp)
   - Generate thumbnails for images (PHP GD)
   - Store metadata in `pw-storage/media.json`
+  - Security: .htaccess prevents PHP execution in uploads
 
-- [ ] **Integrate media with LLM**
-  - Include media manifest in LLM context: `{url, type, alt, title}`
-  - LLM references media by URL from manifest only
+- [x] **Integrate media with LLM** ✅ 2026-01-01
+  - Include media manifest in LLM context in `PromptBuilder`
+  - LLM references media by URL from manifest
+  - Attached files highlighted in prompt as "Just Uploaded"
+  - Full media library shown with URLs and metadata
   - Validate media references in operations
 
-- [ ] **Build media library UI**
-  - Grid view of uploaded media
-  - Upload interface (drag-drop)
-  - Insert into content functionality
-  - Edit alt text and metadata
-  - Delete media (with usage check)
+- [x] **Build media library UI** ✅ 2026-01-01
+  - File upload in prompt interface with "📎 Attach Files" button
+  - Grid view of uploaded media in collapsible section
+  - Thumbnail previews for images
+  - Copy URL functionality
+  - Delete media functionality
+  - API endpoints: `api/upload.php`, `api/media.php`
 
 ### Phase 6: WordPress-like UX polish ✅
 
@@ -492,11 +496,11 @@ Tight sequence for rapid progress:
 - **Phase 2 (Compiler):** 5/5 (100%) ✅ - Preview navigation added
 - **Phase 3 (Changelog):** 4/4 (100%) ✅
 - **Phase 4 (LLM Integration):** 6/6 (100%) ✅
-- **Phase 5 (Media Library):** 0/3 (0%)
+- **Phase 5 (Media Library):** 3/3 (100%) ✅ Complete LLM-first workflow
 - **Phase 6 (UX Polish):** 4/10 (40%) - Admin UI complete ✅
 - **7-Day Sprint:** 7/7 (100%) ✅
 
-### Overall: 48/81 items complete (59%)
+### Overall: 51/81 items complete (63%)
 
 ---
 

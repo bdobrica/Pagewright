@@ -147,6 +147,11 @@ $sessionExpired = isset($_GET['session_expired']) && $_GET['session_expired'] ==
             id="prompt-input" 
             placeholder="What would you like to do?"
             rows="3"></textarea>
+          <div class="file-upload-area">
+            <input type="file" id="file-input" multiple accept="image/*,.pdf" style="display: none;">
+            <button id="attach-file-btn" type="button" class="secondary outline">📎 Attach Files</button>
+            <div id="file-list" class="file-list"></div>
+          </div>
           <button id="send-btn" type="button">Send</button>
         </div>
         <div class="action-bar">
@@ -157,6 +162,52 @@ $sessionExpired = isset($_GET['session_expired']) && $_GET['session_expired'] ==
       </div>
       
     </div>
+    
+    <!-- Media Library (collapsed) -->
+    <details class="media-library">
+      <summary>📁 Media Library</summary>
+      <div id="media-grid" class="media-grid">
+        <?php
+        $media = Storage::loadMedia();
+        $files = $media['files'] ?? [];
+        
+        if (empty($files)): ?>
+          <p class="text-muted">No files uploaded yet. Use the "📎 Attach Files" button above to upload images.</p>
+        <?php else: 
+          foreach ($files as $file): ?>
+            <div class="media-item" data-id="<?= htmlspecialchars($file['id']) ?>">
+              <?php if (strpos($file['type'], 'image/') === 0 && !empty($file['thumb_url'])): ?>
+                <img src="<?= htmlspecialchars($file['thumb_url']) ?>" alt="<?= htmlspecialchars($file['filename']) ?>">
+              <?php else: ?>
+                <div class="media-icon">📄</div>
+              <?php endif; ?>
+              <div class="media-info">
+                <div class="media-filename" title="<?= htmlspecialchars($file['filename']) ?>">
+                  <?= htmlspecialchars($file['filename']) ?>
+                </div>
+                <div class="media-meta">
+                  <?= htmlspecialchars($file['type']) ?> • 
+                  <?php
+                    $size = $file['size'];
+                    if ($size < 1024) {
+                      echo $size . ' B';
+                    } elseif ($size < 1048576) {
+                      echo round($size / 1024, 1) . ' KB';
+                    } else {
+                      echo round($size / 1048576, 1) . ' MB';
+                    }
+                  ?>
+                </div>
+                <div class="media-actions">
+                  <button class="copy-url-btn secondary outline" data-url="<?= htmlspecialchars($file['url']) ?>">Copy URL</button>
+                  <button class="delete-media-btn secondary outline" data-id="<?= htmlspecialchars($file['id']) ?>">Delete</button>
+                </div>
+              </div>
+            </div>
+          <?php endforeach;
+        endif; ?>
+      </div>
+    </details>
     
     <!-- Account Info (collapsed) -->
     <details class="account-details">

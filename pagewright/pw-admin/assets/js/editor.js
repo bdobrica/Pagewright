@@ -8,6 +8,7 @@
     
     // State
     let conversationHistory = [];
+    let uploadedFiles = [];
     
     // DOM Elements
     const conversation = document.getElementById('conversation');
@@ -15,11 +16,15 @@
     const sendBtn = document.getElementById('send-btn');
     const resetBtn = document.getElementById('reset-btn');
     const publishAllBtn = document.getElementById('publish-all-btn');
+    const attachFileBtn = document.getElementById('attach-file-btn');
+    const fileInput = document.getElementById('file-input');
+    const fileList = document.getElementById('file-list');
     
     // Initialize
     function init() {
         attachEventListeners();
         loadConversationFromSession();
+        attachMediaLibraryListeners();
     }
     
     // Event Listeners
@@ -49,6 +54,142 @@
         if (publishAllBtn) {
             publishAllBtn.addEventListener('click', handlePublishAll);
         }
+        
+        if (attachFileBtn && fileInput) {
+            attachFileBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', handleFileSelect);
+        }
+    }
+    
+    // Media Library Listeners
+    function attachMediaLibraryListeners() {
+        // Copy URL buttons
+        document.querySelectorAll('.copy-url-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const url = e.target.dataset.url;
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showStatus('URL copied to clipboard', 'success');
+                } catch (err) {
+                    showStatus('Failed to copy URL', 'error');
+                }
+            });
+        });
+        
+        // Delete buttons
+        document.querySelectorAll('.delete-media-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = e.target.dataset.id;
+                if (!confirm('Delete this file?')) return;
+                
+                try {
+                    showStatus('Deleting file...', 'info');
+                    await deleteMediaFile(id);
+                    // Remove from DOM
+                    e.target.closest('.media-item').remove();
+                    showStatus('File deleted', 'success');
+                } catch (err) {
+                    showStatus('Failed to delete file: ' + err.message, 'error');
+                }
+            });
+        });
+    }
+    
+    // Delete media file
+    async function deleteMediaFile(id) {
+        const response = await fetch('/pw-admin/api/media.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: id
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Delete failed');
+        }
+        
+        return data;
+    }
+    
+    // Handle file selection
+    async function handleFileSelect(e) {
+        const files = Array.from(e.target.files);
+        
+        for (const file of files) {
+            try {
+                showStatus('Uploading ' + file.name + '...', 'info');
+                const uploadedFile = await uploadFile(file);
+                uploadedFiles.push(uploadedFile);
+                renderFileList();
+                showStatus('Uploaded ' + file.name, 'success');
+            } catch (error) {
+                showStatus('Failed to upload ' + file.name + ': ' + error.message, 'error');
+            }
+        }
+        
+        // Clear file input
+        fileInput.value = '';
+    }
+    
+    // Upload file
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('api/upload.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            throw new Error(data.error || 'Upload failed');
+        }
+        
+        return data.file;
+    }
+    
+    // Render file list
+    function renderFileList() {
+        if (!fileList) return;
+        
+        fileList.innerHTML = '';
+        
+        uploadedFiles.forEach((file, index) => {
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            
+            let content = '';
+            
+            // Show thumbnail for images
+            if (file.type.startsWith('image/') && file.thumb_url) {
+                content += `<img src="${escapeHtml(file.thumb_url)}" alt="">`;
+            }
+            
+            content += `<span class="file-name" title="${escapeHtml(file.filename)}">${escapeHtml(file.filename)}</span>`;
+            content += `<button class="remove-file" data-index="${index}" title="Remove">×</button>`;
+            
+            fileItem.innerHTML = content;
+            
+            // Add remove handler
+            const removeBtn = fileItem.querySelector('.remove-file');
+            removeBtn.addEventListener('click', () => removeFile(index));
+            
+            fileList.appendChild(fileItem);
+        });
+    }
+    
+    // Remove file
+    function removeFile(index) {
+        uploadedFiles.splice(index, 1);
+        renderFileList();
     }
     
     // Handle send prompt
@@ -57,8 +198,12 @@
         
         if (!prompt) return;
         
-        // Add user message
-        addMessage('user', prompt);
+        // Add user message (including files if any)
+        let displayPrompt = prompt;
+        if (uploadedFiles.length > 0) {
+            displayPrompt += '\n\n📎 Attached files: ' + uploadedFiles.map(f => f.filename).join(', ');
+        }
+        addMessage('user', displayPrompt);
         
         // Clear input
         promptInput.value = '';
@@ -77,7 +222,8 @@
                 body: JSON.stringify({
                     action: 'smart_prompt',
                     prompt: prompt,
-                    context: getConversationContext()
+                    context: getConversationContext(),
+                    files: uploadedFiles
                 })
             });
             
@@ -90,6 +236,10 @@
                 // Add assistant response
                 addAssistantResponse(data);
                 saveConversationToSession();
+                
+                // Clear uploaded files after successful send
+                uploadedFiles = [];
+                renderFileList();
             } else {
                 // Show error
                 addErrorMessage(data.error || 'Failed to process request');
