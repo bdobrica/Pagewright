@@ -64,11 +64,13 @@
   - Files: `pagewright/pw-admin/index.php:47`, OAuth providers
   - Impact: Prevent information disclosure
 
-- [ ] **Validate provider parameter** - Whitelist check before passing to OAuthManager
+- [x] **Validate provider parameter** - Whitelist check before passing to OAuthManager ✅ 2026-01-01
   - File: `pagewright/pw-admin/index.php:10`
+  - Added validation against allowed providers list before OAuthManager call
 
-- [ ] **Handle missing email from GitHub** - Explicit handling when email is private/null
+- [x] **Handle missing email from GitHub** - Explicit handling when email is private/null ✅ 2026-01-01
   - File: `pagewright/pw-admin/libs/oauth/GitHubProvider.php:50`
+  - Throws clear error with instructions to make email public
 
 ### Code Quality
 
@@ -480,7 +482,7 @@ Tight sequence for rapid progress:
 
 ### Completion Status
 - **Critical Issues:** 5/5 (100%) ✅
-- **High Priority:** 9/14 (64%)
+- **High Priority:** 11/14 (79%) ✅ Security Hardening Complete
 - **Medium Priority:** 0/11 (0%)
 - **Low Priority:** 1/9 (11%) - Router implemented ✅
 - **Phase 1 (CMS Model):** 4/4 (100%) ✅
@@ -491,7 +493,7 @@ Tight sequence for rapid progress:
 - **Phase 6 (UX Polish):** 4/10 (40%) - Admin UI complete ✅
 - **7-Day Sprint:** 7/7 (100%) ✅
 
-### Overall: 44/81 items complete (54%)
+### Overall: 46/81 items complete (57%)
 
 ---
 

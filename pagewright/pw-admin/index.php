@@ -28,6 +28,14 @@ if ($action === 'login') {
             throw new RuntimeException('Invalid security token. Please refresh the page and try again.');
         }
 
+        // Validate provider parameter against whitelist
+        $allowedProviders = ['google', 'github'];
+        if (!in_array($providerName, $allowedProviders, true)) {
+            $limiter->recordAttempt();
+            Logger::security('Invalid OAuth provider attempted: ' . $providerName);
+            throw new InvalidArgumentException('Invalid authentication provider.');
+        }
+
         $provider = OAuthManager::get($providerName);
         $state = OAuthManager::newState();
         $_SESSION['oauth_state'] = $state;

@@ -58,10 +58,20 @@ final class GitHubProvider implements OAuthProvider
             throw new RuntimeException('GitHub user fetch failed.');
         }
 
+        // Handle missing email (GitHub allows users to hide their email)
+        $email = $data['email'] ?? null;
+        if (empty($email)) {
+            throw new RuntimeException(
+                'Your GitHub email is not public. Please make your email address public in your ' .
+                'GitHub settings (Settings → Emails → uncheck "Keep my email addresses private") ' .
+                'and try again.'
+            );
+        }
+
         return [
             'provider' => 'github',
             'subject' => (string)$data['id'],
-            'email' => (string)($data['email'] ?? ''), // may be null
+            'email' => (string)$email,
             'name' => (string)($data['name'] ?? $data['login'] ?? ''),
             'avatar' => (string)($data['avatar_url'] ?? ''),
         ];
